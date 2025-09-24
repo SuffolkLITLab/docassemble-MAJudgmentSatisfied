@@ -1,0 +1,132 @@
+---
+# include:
+#  - docassemble.AssemblyLine:assembly_line.yml
+---
+metadata:
+  title: "Petition to deem satisfied"
+  short title: "Petition to deem satisfied"
+  description: |-
+    Minimal rebuilt interview based on working examples.
+  maturity: production
+  generated_on: "2025-09-19"
+  languages:
+    - en
+  review_date: "2025-09-19"
+---
+code: |
+  # defaults
+  AL_DEFAULT_COUNTRY = "US"
+  AL_DEFAULT_STATE = ""
+---
+### AL objects removed for isolation during debugging
+# objects:
+#  - users: ALPeopleList
+#  - other_parties: ALPeopleList
+#  - attorneys: ALPeopleList
+---
+sections:
+  - review: Review your answers
+---
+id: interview_order
+code: |
+  intro
+  petitioner_info
+  judgment_payment_date
+  service_method
+  final_thanks
+---
+id: intro
+question: |
+  Petition to Deem Judgment Satisfied
+subquestion: |
+  Short intro text.
+---
+---
+---
+---
+id: petitioner_info
+question: |
+  Your information
+subquestion: |
+  Please enter your name and contact info.
+mandatory: True
+fields:
+  - First name: petitioner_first_name
+  - Middle name: petitioner_middle_name
+  - Last name: petitioner_last_name
+  - E-mail: petitioner_email
+    datatype: email
+  - Mobile phone: petitioner_mobile
+  - Street address: petitioner_street
+  - City: petitioner_city
+  - State: petitioner_state
+  - ZIP code: petitioner_zip
+  - Docket number: docket_number
+
+---
+id: judgment_payment_date
+question: |
+  When did you pay the judgment?
+fields:
+  - "Date you paid the judgment": judgment_payment_date
+    datatype: date
+mandatory: True
+validation code: |
+  if judgment_payment_date > today():
+    validation_error("Payment date cannot be in the future", field='judgment_payment_date')
+
+---
+id: service_method
+question: |
+  How will you serve the other party?
+fields:
+  - Service method: service_method
+    datatype: checkboxes
+    choices:
+      - mail
+      - email
+      - in_person
+mandatory: True
+validation code: |
+  if not service_method:
+    validation_error("You must choose at least one service method")
+---
+id: final_thanks
+question: |
+  All done — you're finished
+subquestion: |
+  Thank you — your answers are saved. When you're ready, download the petition below. If you need to make changes, use the browser back button to return to previous screens.
+
+  Summary of your answers:
+
+  - Docket number: ${ docket_number if defined('docket_number') else 'N/A' }
+  - Petitioner: ${ (petitioner_first_name if defined('petitioner_first_name') else 'N/A') + (' ' + petitioner_last_name if defined('petitioner_last_name') else '') }
+  - Date paid: ${ judgment_payment_date if defined('judgment_payment_date') else 'N/A' }
+
+mandatory: True
+attachments:
+  - petition
+---
+### AL attachments removed for isolation; keep inline `attachment:` block instead
+# objects:
+#  - rebuild_attachment: ALDocument.using(title="Petition (rebuild)", filename="petition_rebuild", enabled=True)
+#  - rebuild_bundle: ALDocumentBundle.using(elements=[rebuild_attachment], filename="petition_rebuild", title="Download", enabled=True)
+---
+attachment:
+  name: petition
+  filename: petition
+  # Using inline content as a placeholder so the playground can load without the .docx template file.
+  # Replace this with `docx template file: petition.docx` when you add the real template.
+  content: |
+    Petition to Deem Judgment Satisfied
+
+    Docket number: ${ docket_number if defined('docket_number') else '' }
+    Petitioner: ${ (petitioner_first_name if defined('petitioner_first_name') else '') + (' ' + petitioner_last_name if defined('petitioner_last_name') else '') }
+    Date paid: ${ judgment_payment_date if defined('judgment_payment_date') else '' }
+
+    Service method: ${ service_method.true_values() if defined('service_method') else '' }
+
+  variable name: petition[i]
+  skip undefined: True
+
+

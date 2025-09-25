@@ -30,6 +30,7 @@ sections:
 id: interview_order
 code: |
   intro
+  court_info
   petitioner_info
   judgment_payment_date
   service_method
@@ -41,6 +42,25 @@ question: |
 subquestion: |
   Short intro text.
 ---
+---
+id: court_info
+question: |
+  Court information
+subquestion: |
+  Tell us which court handled your case.
+fields:
+  - "Court department": trial_court_department
+    choices:
+      - District Court
+      - Housing Court
+      - Boston Municipal Court
+  - "Court division": trial_court_division
+  - "Court county": trial_court_county
+mandatory: True
+validation code: |
+  if not trial_court_department:
+    validation_error("Please select the court department", field='trial_court_department')
+
 ---
 ---
 ---

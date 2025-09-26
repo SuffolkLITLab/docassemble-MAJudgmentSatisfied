@@ -17,6 +17,64 @@ code: |
   # defaults
   AL_DEFAULT_COUNTRY = "US"
   AL_DEFAULT_STATE = ""
+
+  court_location_options = {
+    "Housing Court": [
+      "Central",
+      "Eastern",
+      "Metro South",
+      "Northeast",
+      "Southeast",
+      "Western",
+      "Other",
+    ],
+    "District Court": [
+      "Central",
+      "Eastern",
+      "Northern",
+      "Southern",
+      "Western",
+      "Other",
+    ],
+    "Boston Municipal Court": [
+      "Boston",
+      "Other",
+    ],
+    "Superior Court": [
+      "Barnstable",
+      "Berkshire",
+      "Bristol",
+      "Dukes",
+      "Essex",
+      "Franklin",
+      "Hampden",
+      "Hampshire",
+      "Middlesex",
+      "Nantucket",
+      "Norfolk",
+      "Plymouth",
+      "Suffolk",
+      "Worcester",
+      "Other",
+    ],
+    "Probate and Family Court": [
+      "Barnstable",
+      "Berkshire",
+      "Bristol",
+      "Dukes",
+      "Essex",
+      "Franklin",
+      "Hampden",
+      "Hampshire",
+      "Middlesex",
+      "Nantucket",
+      "Norfolk",
+      "Plymouth",
+      "Suffolk",
+      "Worcester",
+      "Other",
+    ],
+  }
 ---
 ### AL objects removed for isolation during debugging
 # objects:
@@ -27,20 +85,86 @@ code: |
 sections:
   - review: Review your answers
 ---
-id: interview_order
-code: |
-  intro
-  petitioner_info
-  judgment_payment_date
-  service_method
-  final_thanks
----
 id: intro
 question: |
   Petition to Deem Judgment Satisfied
 subquestion: |
   Short intro text.
 ---
+id: interview_order
+code: |
+  intro
+  court_info
+  court_location_details
+  petitioner_info
+  judgment_payment_date
+  service_method
+  final_thanks
+---
+---
+id: court_info
+question: |
+  Court information
+subquestion: |
+  ## What court handled your case?
+  
+  This information will appear on your court documents. If you're unsure, check your original court papers.
+  
+  **Most rent cases are heard in Housing Court or District Court.**
+fields:
+  - "Court department": trial_court_department
+    choices:
+      - District Court
+      - Housing Court
+      - Boston Municipal Court
+      - Superior Court
+      - Probate and Family Court
+    help: "Check your original court papers for this information"
+mandatory: True
+validation code: |
+  if not trial_court_department:
+    validation_error("Please select the court department", field='trial_court_department')
+  for varname in ('trial_court_location', 'trial_court_location_other', 'wants_court_location_details'):
+    if defined(varname):
+      undefine(varname)
+  need('court_location_details')
+
+---
+id: court_location_details
+question: |
+  Court location details
+subquestion: |
+  You selected **${ trial_court_department }**. If you know the division, district, or county, add it now. Otherwise, choose **No** below to skip.
+fields:
+  - label: "Do you want to add the court location?"
+    field: wants_court_location_details
+    datatype: yesno
+    help: "Choose Yes if you know the specific court location. Choose No to continue without it."
+  - "Court location": trial_court_location
+    choices:
+      code: court_location_options.get(trial_court_department, [])
+    show if: wants_court_location_details
+    required: True
+    help: "Select the division, district, or county listed on your court papers."
+  - "Specify court location": trial_court_location_other
+    show if: wants_court_location_details and trial_court_location == "Other"
+    required: False
+    help: "Enter the exact court location as it appears on your documents."
+mandatory: True
+validation code: |
+  if wants_court_location_details:
+    options = court_location_options.get(trial_court_department, [])
+    if not options:
+      validation_error("Location options are not available for the selected court. Please contact support.")
+    if not trial_court_location:
+      validation_error("Please choose the court location", field='trial_court_location')
+    if trial_court_location != 'Other' and defined('trial_court_location_other'):
+      undefine('trial_court_location_other')
+  else:
+    for varname in ('trial_court_location', 'trial_court_location_other'):
+      if defined(varname):
+        undefine(varname)
+
 ---
 ---
 ---
@@ -120,6 +244,7 @@ attachment:
   content: |
     Petition to Deem Judgment Satisfied
 
+    Court: ${ trial_court_department if defined('trial_court_department') else '' }${ (', ' + (trial_court_location_other if trial_court_location == 'Other' and defined('trial_court_location_other') else trial_court_location) if defined('trial_court_location') and trial_court_location else '') }
     Docket number: ${ docket_number if defined('docket_number') else '' }
     Petitioner: ${ (petitioner_first_name if defined('petitioner_first_name') else '') + (' ' + petitioner_last_name if defined('petitioner_last_name') else '') }
     Date paid: ${ judgment_payment_date if defined('judgment_payment_date') else '' }
@@ -128,5 +253,3 @@ attachment:
 
   variable name: petition[i]
   skip undefined: True
-
-

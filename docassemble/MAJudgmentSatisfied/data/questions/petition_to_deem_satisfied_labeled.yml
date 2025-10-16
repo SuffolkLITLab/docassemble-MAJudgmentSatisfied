@@ -52,7 +52,7 @@ code: |
   service_method
   service_date
   if service_method == 'mail':
-    service_address
+    service_contact.address
   if service_method == 'email':
     service_email
   users[0].signature
@@ -379,7 +379,7 @@ review:
   - Edit: service_address
     show if: service_method == 'mail'
     button: |
-      **Mailing to:** ${ service_contact.on_one_line(force_newlines=False) }
+      **Mailing to:** ${ service_contact.on_one_line().replace('\n', ', ') }
   - Edit: service_email
     show if: service_method == 'email'
     button: |
@@ -409,7 +409,7 @@ subquestion: |
   
   1. **Download and print** your petition for your records.
   2. **Serve a copy** on ${ 'the plaintiff' if service_recipient == 'plaintiff' else "the plaintiff's attorney" }
-     ${ 'by mail to: ' + service_contact.on_one_line(force_newlines=False) if service_method == 'mail' else '' }
+     ${ 'by mail to: ' + service_contact.on_one_line().replace('\n', ', ') if service_method == 'mail' else '' }
      ${ 'by email to: ' + service_email if service_method == 'email' else '' }
      ${ 'in person' if service_method == 'in_person' else '' }
   3. **File the original** with the court clerk. Bring or attach your proof of payment.
@@ -464,5 +464,5 @@ attachment:
     - "service_method_mail": ${ service_method == 'mail' }
     - "service_method_in_person": ${ service_method == 'in_person' }
     - "service_method_email": ${ service_method == 'email' }
-    - "service_mail_address": ${ service_contact.on_one_line(force_newlines=False) if service_method == 'mail' else '' }
+    - "service_mail_address": ${ service_contact.on_one_line().replace('\n', ', ') if service_method == 'mail' else '' }
     - "service_email_address": ${ service_email if service_method == 'email' else '' }

@@ -1,0 +1,498 @@
+---
+# Petition to Deem Satisfied - Interview
+# Massachusetts Housing Court Form
+# Generated from: jud-tc-Petition-to-Deem-Satisfied.pdf
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.MassAccess:massaccess.yml
+---
+features:
+  navigation: True
+---
+metadata:
+  title: "Petition to Deem Satisfied"
+  description: "Request that the court mark your eviction judgment as satisfied after payment"
+  version: "1.3.2"
+  author: "LIT Lab"
+  review date: 2025-11-19
+---
+sections:
+  - Introduction
+  - Court and case information
+  - Payment information
+  - Your contact information
+  - Attorney information
+  - Service information
+  - Review and sign
+  - Download
+---
+objects:
+  - users: ALPeopleList.using(target_number=1)
+  - other_parties: ALPeopleList.using(target_number=1)  
+  - attorneys: ALPeopleList.using(target_number=1)
+  - trial_court: ALCourt
+  - petition_to_deem_satisfied: ALDocument.using(title="Petition to Deem Satisfied", filename="petition_to_deem_satisfied", enabled=True)
+  - service_contact: ALAddress
+---
+code: |
+  allowed_court_departments = ["Housing Court", "District Court"]
+  housing_and_district_courts = all_courts.filter_courts(allowed_court_departments)
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[petition_to_deem_satisfied], filename="petition_to_deem_satisfied", title="Petition to Deem Satisfied")
+---
+mandatory: True
+code: |
+  interview_order_petition_to_deem_satisfied
+---
+id: interview_order_petition_to_deem_satisfied
+code: |
+  # Trigger all questions in sequence
+  nav.set_section('Introduction')
+  intro_screen_shown
+  
+  nav.set_section('Court and case information')
+  trial_court
+  docket_number
+  other_parties[0].name.first
+  
+  nav.set_section('Payment information')
+  payment_date
+  
+  nav.set_section('Your contact information')
+  users[0].address.address
+  
+  nav.set_section('Attorney information')
+  user_has_attorney
+  if user_has_attorney:
+    attorneys[0].name.first
+  
+  nav.set_section('Service information')
+  service_recipient
+  service_method
+  service_date
+  if service_method == 'mail':
+    service_address
+  if service_method == 'email':
+    service_email
+  
+  nav.set_section('Review and sign')
+  users[0].signature
+  
+  # Set signature date when interview completes
+  signature_date = today()
+  attorney_signature_date = signature_date if user_has_attorney else None
+  
+  nav.set_section('Download')
+  # Trigger download screen
+  download
+  
+  # Mark interview complete
+  interview_order_petition_to_deem_satisfied = True
+---
+id: intro_screen
+question: |
+  Petition to Deem Judgment Satisfied
+subquestion: |
+  This form asks the court to officially mark your eviction judgment as satisfied because you already paid what you owe. Once the judgment is marked satisfied, it is easier to show future landlords or credit screeners that you resolved the case.
+
+  **You are in the right place if:**
+
+  * The case was for nonpayment of rent
+  * A judgment entered against you
+  * You paid the full judgment amount (including any agreed interest or costs)
+
+  Massachusetts General Law [Chapter 239, Section 16(k)](https://malegislature.gov/Laws/GeneralLaws/PartIII/TitleIII/Chapter239/Section16) gives you this right.
+
+  **Before you start, grab:**
+
+  * Your court papers with the docket number
+  * Proof of payment (receipt, money order stub, bank record)
+  * The mailing or email address for the plaintiff or their attorney
+
+  <div class="alert alert-info" role="alert" style="border-left: 4px solid #5bc0de; padding: 15px; margin: 15px 0;">
+    <strong>Tip:</strong> Keep all of these documents nearby so you can finish the form without pausing mid-way.
+  </div>
+
+  ---
+
+  ## What happens here
+
+  <div class="panel panel-primary" style="margin-top: 15px;">
+    <div class="panel-heading">
+      <h3 class="panel-title">Court details</h3>
+    </div>
+    <div class="panel-body">
+      We use your court and docket number to match the petition to the right case.
+    </div>
+  </div>
+
+  <div class="panel panel-info" style="margin-top: 15px;">
+    <div class="panel-heading">
+      <h3 class="panel-title">Payment information</h3>
+    </div>
+    <div class="panel-body">
+      We confirm you paid the judgment and capture the date for the judge.
+    </div>
+  </div>
+
+  <div class="panel panel-primary" style="margin-top: 15px;">
+    <div class="panel-heading">
+      <h3 class="panel-title">Contact and attorney info</h3>
+    </div>
+    <div class="panel-body">
+      The court needs accurate contact info so it can reach you or your attorney.
+    </div>
+  </div>
+
+  <div class="panel panel-info" style="margin-top: 15px;">
+    <div class="panel-heading">
+      <h3 class="panel-title">Serving the other side</h3>
+    </div>
+    <div class="panel-body">
+      You must notify the plaintiff or their lawyer. We help you pick a method and capture proof.
+    </div>
+  </div>
+
+  <div class="panel panel-primary" style="margin-top: 15px;">
+    <div class="panel-heading">
+      <h3 class="panel-title">Review and sign</h3>
+    </div>
+    <div class="panel-body">
+      You'll double-check answers, sign electronically, and download the finished petition.
+    </div>
+  </div>
+
+  <div class="alert alert-warning" role="alert" style="border-left: 4px solid #f0ad4e; padding: 15px; margin: 15px 0;">
+    <strong>Reminder:</strong> You must serve the petition before filing it with the court.
+  </div>
+
+  Expect about 10–15 minutes. If you are not sure about an answer, we will give tips along the way.
+continue button field: intro_screen_shown
+---
+id: trial_court
+question: |
+  Which court is your case in?
+subquestion: |
+  Select the court where your eviction case was heard. This is usually a Housing Court or District Court.
+fields:
+  - no label: trial_court
+    datatype: object
+    choices: housing_and_district_courts
+---
+id: docket_number
+question: |
+  What is your case's docket number?
+subquestion: |
+  The docket number is on your court papers. It might look like 
+  "24H84CV001234" or similar.
+fields:
+  - Docket number: docket_number
+    required: True
+    help: |
+      Look for a number like "24H84CV001234" on your court papers.
+      The "24" is the year, "H84" might be the court code, and the rest is your case number.
+---
+id: parties
+question: |
+  Who is the plaintiff in your case?
+subquestion: |
+  The plaintiff is usually your landlord or the property owner who filed the eviction case against you.
+fields:
+  - Plaintiff's first name: other_parties[0].name.first
+    required: True
+  - Middle name: other_parties[0].name.middle
+    required: False
+  - Last name: other_parties[0].name.last
+    required: True
+  - Suffix: other_parties[0].name.suffix
+    required: False
+    choices:
+      - Jr.
+      - Sr.
+      - II
+      - III
+      - IV
+---
+id: payment_date
+question: |
+  When did you pay the judgment?
+subquestion: |
+  Enter the date you made the final payment that satisfied the judgment. 
+  This is the date you want the court to mark as "satisfied."
+fields:
+  - Payment date: payment_date
+    datatype: date
+    max: ${ today() }
+    help: |
+      Enter the date you paid the judgment in full. This cannot be a future date.
+validation code: |
+  if payment_date > today():
+    validation_error("The payment date cannot be in the future.")
+---
+id: user_info
+sets:
+  - users[0].address.address
+  - users[0].address.unit
+  - users[0].address.city
+  - users[0].address.state
+  - users[0].address.zip
+question: |
+  What is your contact information?
+subquestion: |
+  We need your current address, phone number, and email for the court records.
+fields:
+  - code: |
+      users[0].address_fields(default_state="MA")
+  - Mobile phone: users[0].phone_number
+    datatype: tel
+    required: True
+  - Email address: users[0].email
+    datatype: email
+    required: True
+---
+id: has_attorney
+question: |
+  Do you have an attorney representing you?
+subquestion: |
+  An attorney is optional for this form. If you don't have one, just answer "No."
+yesno: user_has_attorney
+---
+id: attorney_info
+question: |
+  What is your attorney's information?
+subquestion: |
+  We need your attorney's contact information for the court records.
+fields:
+  - Attorney's first name: attorneys[0].name.first
+    required: True
+  - Middle name: attorneys[0].name.middle
+    required: False
+  - Last name: attorneys[0].name.last
+    required: True
+  - Suffix: attorneys[0].name.suffix
+    required: False
+    choices:
+      - Jr.
+      - Sr.
+      - II
+      - III
+      - IV
+  - Email address: attorneys[0].email
+    datatype: email
+    required: True
+  - BBO number: attorneys[0].bbo_number
+    required: False
+    help: |
+      The Board of Bar Overseers number (optional). This helps identify your attorney.
+show if: user_has_attorney
+---
+id: service_recipient
+question: |
+  Who must receive a copy of this petition?
+subquestion: |
+  Massachusetts rules require you to serve the opposing side. If the plaintiff had a lawyer on the case and you have their contact information, choose the attorney. Otherwise, serve the plaintiff directly.
+field: service_recipient
+choices:
+  - The plaintiff: plaintiff
+  - The plaintiff's attorney: plaintiff_attorney
+---
+id: service_method
+question: |
+  How will you serve this petition?
+subquestion: |
+  Choose how you will deliver your petition. For each method, keep proof that you sent it:
+
+  <div class="alert alert-info" role="alert" style="border-left: 4px solid #5bc0de; padding: 15px; margin: 15px 0;">
+    <ul>
+      <li><strong>First class mail:</strong> keep the receipt or certified mail stub</li>
+      <li><strong>In person:</strong> note who accepted it and when</li>
+      <li><strong>Email:</strong> save a copy of the sent email</li>
+    </ul>
+  </div>
+field: service_method
+choices:
+  - First class mail: mail
+  - In person: in_person
+  - Email: email
+---
+id: service_date
+question: |
+  When will you serve this petition?
+subquestion: |
+  Enter the date you will serve (or have served) this document.
+fields:
+  - Service date: service_date
+    datatype: date
+    help: |
+      Enter the date you will serve this petition. This can be today or a future date.
+---
+id: service_address
+question: |
+  What address will you mail the petition to?
+subquestion: |
+  Enter the complete address where you will mail the petition. Make sure it matches what you have for the plaintiff or their attorney.
+fields:
+  - Street address: service_contact.address
+    required: True
+  - Apartment, suite, etc.: service_contact.unit
+    required: False
+  - City: service_contact.city
+    required: True
+  - State: service_contact.state
+    required: True
+  - ZIP code: service_contact.zip
+    required: True
+show if: service_method == 'mail'
+continue button field: service_address
+---
+id: service_email
+question: |
+  What email address will you use for service?
+subquestion: |
+  Enter the email address where you will send the petition. Send from an account you can access later and keep the sent email.
+fields:
+  - Email address: service_email
+    datatype: email
+    required: True
+    help: |
+      Enter the email address where you will send the petition.
+show if: service_method == 'email'
+---
+id: review_petition
+event: review_petition
+question: |
+  Review your answers
+subquestion: |
+  Make sure everything looks right before you sign. Click any section to make a change.
+
+  <div class="alert alert-info" role="alert" style="border-left: 4px solid #5bc0de; padding: 15px; margin: 15px 0;">
+    <strong>Tip:</strong> Fix anything now so the downloaded petition is ready to serve and file.
+  </div>
+review:
+  - Edit: trial_court
+    button: |
+      **Court:** ${ trial_court }
+  - Edit: docket_number
+    button: |
+      **Docket number:** ${ docket_number }
+  - Edit: other_parties[0].name.first
+    button: |
+      **Plaintiff:** ${ other_parties[0].name.full() }
+  - Edit: payment_date
+    button: |
+      **Payment date:** ${ payment_date.format('MM/dd/yyyy') }
+  - Edit: users[0].address.address
+    button: |
+      **Your address:** ${ users[0].address.on_one_line() }
+  - Edit: users[0].phone_number
+    button: |
+      **Your phone:** ${ users[0].phone_number }
+  - Edit: users[0].email
+    button: |
+      **Your email:** ${ users[0].email }
+  - Edit: user_has_attorney
+    button: |
+      **Have attorney:** ${ 'Yes' if user_has_attorney else 'No' }
+  - Edit: attorneys[0].name.first
+    button: |
+      **Attorney:** ${ attorneys[0].name.full() if user_has_attorney else 'N/A' }
+  - Edit: service_recipient
+    button: |
+      **Serve to:** ${ 'Plaintiff' if service_recipient == 'plaintiff' else "Plaintiff's attorney" }
+  - Edit: service_method
+    button: |
+      **Service method:** ${ service_method.replace('_', ' ').title() }
+  - Edit: service_date
+    button: |
+      **Service date:** ${ service_date.format('MM/dd/yyyy') }
+  - Edit: service_address
+    show if: service_method == 'mail'
+    button: |
+      **Mailing to:** ${ service_contact.on_one_line().replace('\n', ', ') }
+  - Edit: service_email
+    show if: service_method == 'email'
+    button: |
+      **Emailing to:** ${ service_email }
+---
+id: signature
+question: |
+  Sign your petition
+subquestion: |
+  Sign your name below to complete your petition.
+signature: users[0].signature
+under: |
+  ${ users[0].name.full() }
+---
+id: download
+event: download
+question: |
+  Interview complete — your petition is ready!
+subquestion: |
+  Your Petition to Deem Satisfied is complete. Download it below.
+
+  <div class="alert alert-info" role="alert" style="border-left: 4px solid #5bc0de; padding: 15px; margin: 15px 0;">
+    <strong>Remember:</strong> File the petition only after you have served the other party and gathered your proof of payment.
+  </div>
+
+  **Next steps:**
+  
+  1. **Download and print** your petition for your records.
+  2. **Serve a copy** on ${ 'the plaintiff' if service_recipient == 'plaintiff' else "the plaintiff's attorney" }
+     ${ 'by mail to: ' + service_contact.on_one_line().replace('\n', ', ') if service_method == 'mail' else '' }
+     ${ 'by email to: ' + service_email if service_method == 'email' else '' }
+     ${ 'in person' if service_method == 'in_person' else '' }
+  3. **File the original** with the court clerk. Bring or attach your proof of payment.
+  
+  **After you file:** The court may contact you or schedule a short hearing. Keep copies of everything you submit and any proof that you served the other party.
+  
+  Need to double-check anything? Use the buttons below to send a copy to yourself or restart the interview.
+  
+  ${ al_user_bundle.download_list_html() }
+  
+  ${ al_user_bundle.send_button_html() }
+---
+attachment:
+  name: Petition to Deem Satisfied
+  filename: petition_to_deem_satisfied
+  variable name: petition_to_deem_satisfied[i]
+  pdf template file: Petition-To-Deem-Satisfied-v1.3.pdf
+  skip undefined: True
+  editable: False
+  fields:
+    # Court information
+    - "docket_number": ${ docket_number }
+    - "trial_court_department": ${ trial_court.department }
+    - "trial_court_division": ${ trial_court.division }
+    
+    # Parties
+    - "plaintiff_name": ${ other_parties[0].name.full() }
+    - "defendant_name": ${ users[0].name.full() }
+    
+    # Request
+    - "payment_date": ${ payment_date.format('MM/dd/yyyy') }
+    
+    # Petitioner
+    - "petitioner_name": ${ users[0].name.full() }
+    - "petitioner_signature": ${ users[0].signature }
+    - "petitioner_signature_date": ${ signature_date.format('MM/dd/yyyy') }
+    - "petitioner_address": ${ users[0].address.on_one_line() }
+    - "petitioner_phone": ${ users[0].phone_number }
+    - "petitioner_email": ${ users[0].email }
+    
+    # Attorney (optional)
+    - "attorney_name": ${ attorneys[0].name.full() if user_has_attorney else '' }
+    - "attorney_signature": ${ attorneys[0].signature if user_has_attorney else '' }
+    - "attorney_signature_date": ${ signature_date.format('MM/dd/yyyy') if user_has_attorney else '' }
+    - "attorney_email": ${ attorneys[0].email if user_has_attorney else '' }
+    - "attorney_bbo_number": ${ attorneys[0].bbo_number if user_has_attorney else '' }
+    
+    # Service
+    - "service_to_plaintiff": ${ service_recipient == 'plaintiff' }
+    - "service_to_plaintiff_attorney": ${ service_recipient == 'plaintiff_attorney' }
+    - "service_date": ${ service_date.format('MM/dd/yyyy') }
+    - "service_method_mail": ${ service_method == 'mail' }
+    - "service_method_in_person": ${ service_method == 'in_person' }
+    - "service_method_email": ${ service_method == 'email' }
+    - "service_mail_address": ${ service_contact.on_one_line() if service_method == 'mail' else '' }
+    - "service_email_address": ${ service_email if service_method == 'email' else '' }

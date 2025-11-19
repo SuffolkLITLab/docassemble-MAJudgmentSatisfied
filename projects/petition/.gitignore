@@ -1,0 +1,28 @@
+# Development files
+REBUILD_ROADMAP.md
+rename_petition_fields.py
+notes/
+
+# Build artifacts
+*.zip
+Petition-For-Judgment-Labeled-Final.pdf
+
+# PDFs (keep only the final template)
+pdfs/*.pdf
+!pdfs/Petition-To-Deem-Satisfied-v1.3.pdf
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+

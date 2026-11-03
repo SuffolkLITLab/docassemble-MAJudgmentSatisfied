@@ -256,7 +256,9 @@ question: |
   Do you have an attorney representing you?
 subquestion: |
   An attorney is optional for this form. If you don't have one, just answer "No."
-yesno: user_has_attorney
+fields:
+  - no label: user_has_attorney
+    datatype: yesnoradio
 ---
 id: attorney_info
 question: |
